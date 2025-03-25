@@ -297,7 +297,6 @@ public class Main {
 
         table.put("C", "HH");
         table.put("S", "XX");
-
         if (!cuckooFailure && table.mapSize() != 43) {
             cuckooFailure = true;
             System.out.println("Error 17: Test Failure);");

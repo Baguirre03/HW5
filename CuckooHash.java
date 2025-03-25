@@ -251,12 +251,38 @@ public class CuckooHash<K, V> {
 	 */
 
 	public void put(K key, V value) {
+		// System.out.println("putting in " + key + " " + value);
+		for (int i = 0; i < CAPACITY; i++) {
+			if (table[i] != null && table[i].getBucKey().equals(key) && table[i].getValue().equals(value)) {
+				return;
+			}
+		}
 
-		// ADD YOUR CODE HERE - DO NOT FORGET TO ADD YOUR NAME AT TOP OF FILE.
-		// Also make sure you read this method's prologue above, it should help
-		// you. Especially the two HINTS in the prologue.
+		for (int i = 0; i < CAPACITY; i++) { // use this to check if we are in a cycle based of of hint
+			int spot1 = hash1(key);
+			int spot2 = hash2(key);
 
-		return;
+			if (table[spot1] == null) {
+				table[spot1] = new Bucket<K, V>(key, value);
+				return;
+			}
+
+			Bucket<K, V> displaced = table[spot1]; // store displaced element
+			table[spot1] = new Bucket<K, V>(key, value); // place new element in spot1
+
+			if (table[spot2] == null) { // check if spot2 is empty
+				table[spot2] = new Bucket<K, V>(displaced.getBucKey(), displaced.getValue());
+				return;
+			}
+
+			// Both spots are taken, continue with displaced element
+			key = displaced.getBucKey();
+			value = displaced.getValue();
+		}
+		rehash();
+		put(key, value); // NOTE: this function works for the smaller input but I cannot get it working
+							// for larger input (starting at error 21) I run into a recursive error because
+							// of the scale of the input and cannot seem to find the bug
 	}
 
 	/**
@@ -345,7 +371,6 @@ public class CuckooHash<K, V> {
 		int OLD_CAPACITY = CAPACITY;
 		CAPACITY = (CAPACITY * 2) + 1;
 		table = new Bucket[CAPACITY];
-
 		for (int i = 0; i < OLD_CAPACITY; ++i) {
 			if (tableCopy[i] != null) {
 				put(tableCopy[i].getBucKey(), tableCopy[i].getValue());
